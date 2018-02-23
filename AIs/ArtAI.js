@@ -1,5 +1,5 @@
 
-function AITurn(){
+function ArtTurn(){
 	return '5';
 	
 }

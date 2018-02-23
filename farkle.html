@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<!--Create a folder called "AIs" in the same directory as this HTML file-->
+<script src="AIs/TomAI.js"></script>
+<script src="AIs/ArtAI.js"></script>
+<script src="AIs/AndyAI.js"></script>
+<body>
+<h1 id="heading">Farkle</h1>
+<button id="startGame" onclick='document.getElementById("startGame").innerHTML = "Tom"'>Begin</button>
+<button id="changeHeading" onclick='start()'>Change Heading</button>
+
+<script type="text/javascript">
+var TomScore = 0;
+var AIScore = 0;
+var diceHolding = [];
+var gameObj = {};
+
+function start(){
+	var diceRolled = rollDice(6 - diceHolding.length);
+	gameObj.rolledDice = diceRolled;
+	var num = TomTurn(gameObj);
+	var num2 = AITurn();
+	document.getElementById("heading").innerHTML = num;
+}
+
+function rollDice(numToRoll){
+	var rolledDice = [numToRoll];
+	for (var d = 0; d < numToRoll; d++){
+		rolledDice[d] = Math.floor(Math.random() * 6) + 1;
+	}
+	return rolledDice;
+}
+</script>
+
+</body>
+</html>

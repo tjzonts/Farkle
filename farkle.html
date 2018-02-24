@@ -32,11 +32,18 @@ holding: [],
 rollAgain: true,
 round: 0
 };
-
+var onesCount;
+var twosCount;
+var threesCount;
+var foursCount;
+var fivesCount;
+var sixesCount;
+var disqualified = false;
 var turnOrder = [];
 var turnQueue = [];
 var diceHolding = [];
 var isFinalRound = false;
+
 
 var gameObj = { Tom: tom, Andy: andy, Art: art };
 
@@ -52,16 +59,23 @@ function SetupGame(){
 }
 
 function beginRound(){
-	turnQueue = turnOrder;
+	turnQueue = turnOrder.slice(0, turnOrder.length);
 	beginTurn();
 }//document.getElementById("heading").innerHTML = num;
 
 function beginTurn(){
-	currentPlayer = turnQueue.shift();
+	if (turnQueue.length == 0){
+		if (isFinalRound)
+			gameOver();
+		else
+			beginRound();
+	}
+	disqualified = false;
+	currentPlayer = turnQueue.shift(); //Grab 1st player from queue
 	currentPlayer.round++;
 	//Roll all 6 dice
 	var diceRolled = rollDice(6 - diceHolding.length);
-	//If no 1's or 5's are rolled, turn is over
+	//If no points are rolled, turn is over
 	if (!checkForPoints(diceRolled))
 		endTurn();
 	gameObj.diceRolled = diceRolled;
@@ -69,22 +83,27 @@ function beginTurn(){
 	switch(currentPlayer.name){
 	case "Tom":
 		var response = TomTurn(gameObj);
-		currentPoints += calculatePoints(reponse.diceHolding);
-		if (response.rollAgain)
+		var dh = response.diceHolding;
+		currentPoints += calculatePoints(dh);
+		if (response.rollAgain && !disqualified)
 			continueTurn();
 		else
 			endTurn(currentPlayer, currentPoints);
 		break;
 	case "Art":
 		var response = ArtTurn(gameObj);
-		if (response.rollAgain)
+		var dh = response.diceHolding;
+		currentPoints += calculatePoints(dh);
+		if (response.rollAgain && !disqualified)
 			continueTurn();
 		else
 			endTurn(currentPlayer, currentPoints);
 		break;
 	case "Andy":
 		var response = AndyTurn(gameObj);
-		if (response.rollAgain)
+		var dh = response.diceHolding;
+		currentPoints += calculatePoints(dh);
+		if (response.rollAgain && !disqualified)
 			continueTurn();
 		else
 			endTurn(currentPlayer, currentPoints);
@@ -92,8 +111,14 @@ function beginTurn(){
 	}
 }
 
+function continueTurn(){
+	
+}
+
 function endTurn(currentPlayer, pointsScored){
 	currentPlayer.score += pointsScored;
+	if (currentPlayer.score > 9999)
+		isFinalRound = true;
 	beginTurn();
 }
 
@@ -105,18 +130,20 @@ function rollDice(numToRoll){
 	return rolledDice;
 }
 
-function calculatePoints(diceHolding){
-	var total = 0;
-	var onesCount = 0;
-	var twosCount = 0;
-	var threesCount = 0;
-	var foursCount = 0;
-	var fivesCount = 0;
-	var sixesCount = 0;
-	for(var die of diceHolding){
+function checkForPoints(diceRolled){
+	var hasPoints = false;
+	onesCount = 0;
+	twosCount = 0;
+	threesCount = 0;
+	foursCount = 0;
+	fivesCount = 0;
+	sixesCount = 0;
+	
+	for(var die of diceRolled){
 		switch(die){
 		case 1:
 			onesCount++;
+			hasPoints = true;
 			break;
 		case 2:
 			twosCount++;
@@ -129,16 +156,53 @@ function calculatePoints(diceHolding){
 			break;
 		case 5:
 			fivesCount++;
+			hasPoints = true;
 			break;
 		case 6:
 			sixesCount++;
 			break;			
 		}
+	}	
+	if (twosCount > 2 || threesCount > 2 || foursCount > 2 || sixesCount > 2){
+			hasPoints = true;
+		}			
+	return hasPoints;
 	}
-	if (onesCount < 3)
-		total += onesCount * 100;
+
+function calculatePoints(diceHolding){	
+	var total = 0;
+	var dhOnesCount = 0;
+	var dhTwosCount = 0;
+	var dhThreesCount = 0;
+	var dhFoursCount = 0;
+	var dhFivesCount = 0;
+	var dhSixesCount = 0;
+	for(var die of diceHolding){
+		switch(die){
+		case 1:
+			dhOnesCount++;
+			break;
+		case 2:
+			dhTwosCount++;
+			break;
+	    case 3:
+			dhThreesCount++;
+			break;
+		case 4:
+			dhFoursCount++;
+			break;
+		case 5:
+			dhFivesCount++;
+			break;
+		case 6:
+			dhSixesCount++;
+			break;			
+		}
+	}
+	if (dhOnesCount < 3)
+		total += dhOnesCount * 100;
 	else {
-		switch(onesCount){
+		switch(dhOnesCount){
 		case 3:
 			total += 1000;
 			break;
@@ -153,8 +217,8 @@ function calculatePoints(diceHolding){
 			break;
 		}
 	}
-	if (twosCount > 2)
-		switch(twosCount){
+	if (dhTwosCount > 2){
+		switch(dhTwosCount){
 		case 3:
 			total += 200;
 			break;
@@ -169,8 +233,8 @@ function calculatePoints(diceHolding){
 			break;
 		}
 	}
-	if (threesCount > 2)
-		switch(threesCount){
+	if (dhThreesCount > 2){
+		switch(dhThreesCount){
 		case 3:
 			total += 300;
 			break;
@@ -185,8 +249,8 @@ function calculatePoints(diceHolding){
 			break;
 		}
 	}
-	if (foursCount > 2)
-		switch(foursCount){
+	if (dhFoursCount > 2){
+		switch(dhFoursCount){
 		case 3:
 			total += 400;
 			break;
@@ -201,10 +265,10 @@ function calculatePoints(diceHolding){
 			break;
 		}
 	}
-	if (fivesCount < 3)
-		total += fivesCount * 50;
+	if (dhFivesCount < 3)
+		total += dhFivesCount * 50;
 	else {
-		switch(fivesCount){
+		switch(dhFivesCount){
 		case 3:
 			total += 500;
 			break;
@@ -219,23 +283,40 @@ function calculatePoints(diceHolding){
 			break;
 		}
 	}
-}
-
-function checkForPoints(diceRolled){
-	var hasPoints = false;
-	for(var die of diceRolled){
-		if (die == 1 || die == 5){
-			hasPoints = true;
+	if (dhSixesCount > 2){
+		switch(dhSixesCount){
+		case 3:
+			total += 600;
 			break;
-			}
+		case 4:
+			total += 1200;
+			break;
+		case 5:
+			total += 2400;
+			break;
+		case 6:
+			total += 3200;
+			break;
+		}
 	}
-	//diceRolled.forEach((die) =>{
-	//	if (die == 1 || die == 5){
-		//	hasPoints = true;
-		//	break;
-			//}
-	//});
-	return hasPoints;
+	//Validate returned dice to game dice
+	var isValidated = true;
+	if (dhOnesCount > onesCount || dhFivesCount > fivesCount)
+		isValidated = false;
+	if (dhTwosCount > 2 && (dhTwosCount != twosCount))
+		isValidated = false;
+	if (dhThreesCount > 2 && (dhThreesCount != threesCount))
+		isValidated = false;
+	if (dhFoursCount > 2 && (dhFoursCount != foursCount))
+		isValidated = false;
+	if (dhSixesCount > 2 && (dhSixesCount != sixesCount))
+		isValidated = false;		
+	
+	if (!isValidated){
+		total = 0;
+		disqualified = true;
+	}
+	return total;
 }
 </script>
 

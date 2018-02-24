@@ -6,27 +6,51 @@
 <script src="AIs/AndyAI.js"></script>
 <body>
 <h1 id="heading">Farkle</h1>
-<button id="startGame" onclick='document.getElementById("startGame").innerHTML = "Tom"'>Begin</button>
-<button id="changeHeading" onclick='start()'>Change Heading</button>
+<!--<button id="startGame" onclick='document.getElementById("startGame").innerHTML = "Tom"'>Begin</button>
+-->
+<button id="startGame" onclick='SetupGame()'>Begin</button>
 
 <script type="text/javascript">
-var TomScore = 0;
-var AIScore = 0;
+var tom = {
+name: "Tom",
+score: 0
+};
+var andy = {
+name: "Andy",
+score: 0
+};
+var art = {
+name: "Art",
+score: 0
+};
+turnQueue = [];
 var diceHolding = [];
 var gameObj = {};
 
-function start(){
+function SetupGame(){
+	var tempPlayer = [tom, andy, art];
+	while (tempPlayer.length > 0){
+		var num = Math.floor(Math.random() * tempPlayer.length);
+		turnQueue.push(tempPlayer[num]);
+		tempPlayer.splice(num,1);
+	} 
+}
+
+function beginRound(){
+    //Roll all 6 dice
 	var diceRolled = rollDice(6 - diceHolding.length);
+	
 	gameObj.rolledDice = diceRolled;
 	var num = TomTurn(gameObj);
-	var num2 = AITurn();
+	var num2 = ArtTurn(gameObj);
 	document.getElementById("heading").innerHTML = num;
 }
 
 function rollDice(numToRoll){
-	var rolledDice = [numToRoll];
+	var rolledDice = [];
 	for (var d = 0; d < numToRoll; d++){
-		rolledDice[d] = Math.floor(Math.random() * 6) + 1;
+		//rolledDice[d] = Math.floor(Math.random() * 6) + 1;
+		rolledDice.push(Math.floor(Math.random() * 6) + 1);
 	}
 	return rolledDice;
 }

@@ -13,43 +13,76 @@
 <script type="text/javascript">
 var tom = {
 name: "Tom",
-score: 0
+score: 0,
+holding: [],
+rollAgain: true,
+round: 0
 };
 var andy = {
 name: "Andy",
-score: 0
+score: 0,
+holding: [],
+rollAgain: true,
+round: 0
 };
 var art = {
 name: "Art",
-score: 0
+score: 0,
+holding: [],
+rollAgain: true,
+round: 0
 };
+
+turnOrder = [];
 turnQueue = [];
 var diceHolding = [];
-var gameObj = {};
+
+var gameObj = { Tom: tom, Andy: andy, Art: art };
 
 function SetupGame(){
+	//Randomly populate turnQueue to set player order
 	var tempPlayer = [tom, andy, art];
 	while (tempPlayer.length > 0){
 		var num = Math.floor(Math.random() * tempPlayer.length);
-		turnQueue.push(tempPlayer[num]);
+		turnOrder.push(tempPlayer[num]);
 		tempPlayer.splice(num,1);
-	} 
+	}
+	beginRound();
 }
 
 function beginRound(){
-    //Roll all 6 dice
+	turnQueue = turnOrder;
+	beginTurn();
+}//document.getElementById("heading").innerHTML = num;
+
+function beginTurn(){
+	currentPlayer = turnQueue.shift();
+	//Roll all 6 dice
 	var diceRolled = rollDice(6 - diceHolding.length);
+	//If no 1's or 5's are rolled, turn is over
+	if (!checkForPoints(diceRolled))
+		endTurn();
+	gameObj.diceRolled = diceRolled;
+	switch(currentPlayer.name){
+	case "Tom":
+		var response = TomTurn(gameObj);
+		break;
+	case "Art":
+		var response = ArtTurn(gameObj);
+		break;
+	case "Andy":
+		var response = AndyTurn(gameObj);
+		break;
+	}
+}
+
+function endTurn(){
 	
-	gameObj.rolledDice = diceRolled;
-	var num = TomTurn(gameObj);
-	var num2 = ArtTurn(gameObj);
-	document.getElementById("heading").innerHTML = num;
 }
 
 function rollDice(numToRoll){
 	var rolledDice = [];
 	for (var d = 0; d < numToRoll; d++){
-		//rolledDice[d] = Math.floor(Math.random() * 6) + 1;
 		rolledDice.push(Math.floor(Math.random() * 6) + 1);
 	}
 	return rolledDice;

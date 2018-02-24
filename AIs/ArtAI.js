@@ -1,5 +1,5 @@
 
 function ArtTurn(){
-	return '5';
+	return 1;
 	
 }

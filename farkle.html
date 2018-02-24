@@ -16,13 +16,23 @@
 <div class="col-md-12"  style="display:inline-block; float:none; text-align:center;">
 <h1 id="heading">Farkle</h1>
 </div>
-<button id="startGame" class="col-md-12"  style="display:inline-block; float:none; text-align:center;" onclick='SetupGame()'>Begin</button>
 </div> <!-- End of row -->
-<div class="row">
-<div class="col-md-4" id="TomConsole" style="display:inline-block; float:none; text-align:center;"><h4>Tom</h4></div>
-<div class="col-md-4" id="AndyConsole" style="display:inline-block; float:none; text-align:center;"><h4>Andy</h4></div>
-<div class="col-md-4" id="ArtConsole" style="display:inline-block; float:none; text-align:center;"><h4>Art</h4></div>
+<div class="row" style="height: 500px">
+<div class="col-md-4" id="TomConsole" style="display:inline-block; float:none; text-align:center;"><h4 id="Tom">Tom</h4>
+<textarea id="TomTextArea" style="overflow-y: scroll; height: 100%; resize: none; width: 100%; margin-left: 5px;"></textarea>
 </div>
+<div class="col-md-4" id="AndyConsole" style="display:inline-block; float:none; text-align:center;"><h4 id="Andy">Andy</h4>
+	<textarea id="AndyTextArea" style="overflow-y: scroll; height: 100%; resize: none; width: 100%; margin-left: 5px;"></textarea>
+</div>
+<div class="col-md-4" id="ArtConsole" style="display:inline-block; float:none; text-align:center;"><h4 id="Art">Art</h4>
+	<textarea id="ArtTextArea" style="overflow-y: scroll; height: 100%; resize: none; width: 100%; margin-left: 5px; margin-right: 5px;"></textarea>
+</div>
+</div>
+<div>
+
+	<button id="startGame" class="fixed-bottom col-md-12"  style="display:inline-block; float:none; text-align:center;" onclick='SetupGame()'>Start Game</button>
+</div>
+
 <!--<button id="startGame" onclick='document.getElementById("startGame").innerHTML = "Tom"'>Begin</button>
 -->
 
@@ -76,6 +86,24 @@ var isFinalRound = false;
 var gameObj = { Tom: tom, Andy: andy, Art: art, qualificationAmt: qualificationAmt };
 
 function SetupGame(){
+	isFinalRound = false;
+	art.score = 0;
+	tom.score = 0;
+	andy.score = 0;
+	tom.round = 0;
+	andy.round = 0;
+	art.round = 0;
+	tom.hasQualified = false;
+	art.hasQualified = false;
+	andy.hasQualified = false;
+	debugger;
+	document.getElementById("TomTextArea").innerHTML = "";
+	document.getElementById("ArtTextArea").innerHTML = "";
+	document.getElementById("AndyTextArea").innerHTML = "";
+	document.getElementById("Tom").innerHTML = "Tom";
+	document.getElementById("Art").innerHTML = "Art";
+	document.getElementById("Andy").innerHTML = "Andy";
+
 	//Randomly populate turnQueue to set player order
 	var tempPlayer = [tom, andy, art];
 	while (tempPlayer.length > 0){
@@ -89,7 +117,7 @@ function SetupGame(){
 function beginRound(){
 	turnQueue = turnOrder.slice(0, turnOrder.length);
 	beginTurn();
-}//document.getElementById("heading").innerHTML = num;
+}
 
 function beginTurn(){
 	if (turnQueue.length == 0){
@@ -158,6 +186,18 @@ function endTurn(currentPlayer, pointsScored){
 		if (currentPlayer.score > winningScoreTarget - 1)
 			isFinalRound = true;
 	}
+	var msg = "Round "+currentPlayer.round+": " + pointsScored + " ("+currentPlayer.score+" total)\n"
+	switch (currentPlayer.name){
+		case "Tom":
+		document.getElementById("TomTextArea").innerHTML += msg;
+		break;
+		case "Art":
+		document.getElementById("ArtTextArea").innerHTML += msg;
+		break;
+		case "Andy":
+		document.getElementById("AndyTextArea").innerHTML += msg;
+		break;
+	}
 	beginTurn();
 }
 
@@ -169,7 +209,8 @@ function gameOver(){
 			winnerName = player.name;
 	}
 	
-	alert("Congrats " + winnerName);
+	document.getElementById(winnerName).innerHTML += "-WINNER!";
+
 }
 
 function rollDice(numToRoll){

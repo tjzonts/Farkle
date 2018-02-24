@@ -15,6 +15,7 @@ var tom = {
 name: "Tom",
 score: 0,
 currentTurnPoints: 0,
+hasQualified: false,
 holding: [],
 round: 0
 };
@@ -22,6 +23,7 @@ var andy = {
 name: "Andy",
 score: 0,
 currentTurnPoints: 0,
+hasQualified: false,
 holding: [],
 round: 0
 };
@@ -29,9 +31,12 @@ var art = {
 name: "Art",
 score: 0,
 currentTurnPoints: 0,
+hasQualified: false,
 holding: [],
 round: 0
 };
+var qualificationAmt = 500;
+var winningScoreTarget = 10000;
 var numOfDice = 6;
 var onesCount;
 var twosCount;
@@ -46,7 +51,7 @@ var diceHolding = [];
 var isFinalRound = false;
 
 
-var gameObj = { Tom: tom, Andy: andy, Art: art };
+var gameObj = { Tom: tom, Andy: andy, Art: art, qualificationAmt: qualificationAmt };
 
 function SetupGame(){
 	//Randomly populate turnQueue to set player order
@@ -124,9 +129,13 @@ function turn(){
 }
 
 function endTurn(currentPlayer, pointsScored){
-	currentPlayer.score += pointsScored;
-	if (currentPlayer.score > 9999)
-		isFinalRound = true;
+	if (!currentPlayer.hasQualified && pointsScored > qualificationAmt - 1)
+		currentPlayer.hasQualified = true;
+	else if (currentPlayer.hasQualified){
+		currentPlayer.score += pointsScored;
+		if (currentPlayer.score > winningScoreTarget - 1)
+			isFinalRound = true;
+	}
 	beginTurn();
 }
 

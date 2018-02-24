@@ -1,15 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <!--Create a folder called "AIs" in the same directory as this HTML file-->
 <script src="AIs/TomAI.js"></script>
 <script src="AIs/ArtAI.js"></script>
 <script src="AIs/AndyAI.js"></script>
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+</head>
 <body>
 <h1 id="heading">Farkle</h1>
 <!--<button id="startGame" onclick='document.getElementById("startGame").innerHTML = "Tom"'>Begin</button>
 -->
 <button id="startGame" onclick='SetupGame()'>Begin</button>
-
+<!-- jQuery first, then Tether, then Bootstrap JS. -->
+<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+</body>
 <script type="text/javascript">
 var tom = {
 name: "Tom",
@@ -35,8 +46,8 @@ hasQualified: false,
 holding: [],
 round: 0
 };
-var qualificationAmt = 500;
-var winningScoreTarget = 10000;
+var qualificationAmt = 100; //Currently game will bomb if set much higher as our AIs aren't created yet.
+var winningScoreTarget = 10000; //Standard scoring amount
 var numOfDice = 6;
 var onesCount;
 var twosCount;
@@ -347,6 +358,4 @@ function calculatePoints(diceHolding){
 	return total;
 }
 </script>
-
-</body>
 </html>

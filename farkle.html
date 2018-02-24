@@ -33,9 +33,10 @@ rollAgain: true,
 round: 0
 };
 
-turnOrder = [];
-turnQueue = [];
+var turnOrder = [];
+var turnQueue = [];
 var diceHolding = [];
+var isFinalRound = false;
 
 var gameObj = { Tom: tom, Andy: andy, Art: art };
 
@@ -57,27 +58,43 @@ function beginRound(){
 
 function beginTurn(){
 	currentPlayer = turnQueue.shift();
+	currentPlayer.round++;
 	//Roll all 6 dice
 	var diceRolled = rollDice(6 - diceHolding.length);
 	//If no 1's or 5's are rolled, turn is over
 	if (!checkForPoints(diceRolled))
 		endTurn();
 	gameObj.diceRolled = diceRolled;
+	var currentPoints = 0;
 	switch(currentPlayer.name){
 	case "Tom":
 		var response = TomTurn(gameObj);
+		currentPoints += calculatePoints(reponse.diceHolding);
+		if (response.rollAgain)
+			continueTurn();
+		else
+			endTurn(currentPlayer, currentPoints);
 		break;
 	case "Art":
 		var response = ArtTurn(gameObj);
+		if (response.rollAgain)
+			continueTurn();
+		else
+			endTurn(currentPlayer, currentPoints);
 		break;
 	case "Andy":
 		var response = AndyTurn(gameObj);
+		if (response.rollAgain)
+			continueTurn();
+		else
+			endTurn(currentPlayer, currentPoints);
 		break;
 	}
 }
 
-function endTurn(){
-	
+function endTurn(currentPlayer, pointsScored){
+	currentPlayer.score += pointsScored;
+	beginTurn();
 }
 
 function rollDice(numToRoll){
@@ -86,6 +103,139 @@ function rollDice(numToRoll){
 		rolledDice.push(Math.floor(Math.random() * 6) + 1);
 	}
 	return rolledDice;
+}
+
+function calculatePoints(diceHolding){
+	var total = 0;
+	var onesCount = 0;
+	var twosCount = 0;
+	var threesCount = 0;
+	var foursCount = 0;
+	var fivesCount = 0;
+	var sixesCount = 0;
+	for(var die of diceHolding){
+		switch(die){
+		case 1:
+			onesCount++;
+			break;
+		case 2:
+			twosCount++;
+			break;
+	    case 3:
+			threesCount++;
+			break;
+		case 4:
+			foursCount++;
+			break;
+		case 5:
+			fivesCount++;
+			break;
+		case 6:
+			sixesCount++;
+			break;			
+		}
+	}
+	if (onesCount < 3)
+		total += onesCount * 100;
+	else {
+		switch(onesCount){
+		case 3:
+			total += 1000;
+			break;
+		case 4:
+			total += 2000;
+			break;
+		case 5:
+			total += 4000;
+			break;
+		case 6:
+			total += 8000;
+			break;
+		}
+	}
+	if (twosCount > 2)
+		switch(twosCount){
+		case 3:
+			total += 200;
+			break;
+		case 4:
+			total += 400;
+			break;
+		case 5:
+			total += 800;
+			break;
+		case 6:
+			total += 1600;
+			break;
+		}
+	}
+	if (threesCount > 2)
+		switch(threesCount){
+		case 3:
+			total += 300;
+			break;
+		case 4:
+			total += 600;
+			break;
+		case 5:
+			total += 1200;
+			break;
+		case 6:
+			total += 2400;
+			break;
+		}
+	}
+	if (foursCount > 2)
+		switch(foursCount){
+		case 3:
+			total += 400;
+			break;
+		case 4:
+			total += 800;
+			break;
+		case 5:
+			total += 1600;
+			break;
+		case 6:
+			total += 3200;
+			break;
+		}
+	}
+	if (fivesCount < 3)
+		total += fivesCount * 50;
+	else {
+		switch(fivesCount){
+		case 3:
+			total += 500;
+			break;
+		case 4:
+			total += 1000;
+			break;
+		case 5:
+			total += 2000;
+			break;
+		case 6:
+			total += 4000;
+			break;
+		}
+	}
+}
+
+function checkForPoints(diceRolled){
+	var hasPoints = false;
+	for(var die of diceRolled){
+		if (die == 1 || die == 5){
+			hasPoints = true;
+			break;
+			}
+	}
+	//diceRolled.forEach((die) =>{
+	//	if (die == 1 || die == 5){
+		//	hasPoints = true;
+		//	break;
+			//}
+	//});
+	return hasPoints;
 }
 </script>
 

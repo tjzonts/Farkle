@@ -1,6 +1,6 @@
 
 	function TomTurn(gameObj){
-		return 3;
-
+		var response = { diceHolding: [1,1,5], rollAgain: false}
+		return response;
 		}
 

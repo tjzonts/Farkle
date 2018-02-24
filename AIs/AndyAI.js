@@ -1,4 +1,4 @@
 function AndyTurn(){
-	return 5;
-	
+	var response = { diceHolding: [1,1], rollAgain: false}
+		return response;	
 }

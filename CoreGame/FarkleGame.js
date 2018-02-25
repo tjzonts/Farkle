@@ -44,22 +44,16 @@ var gameObj = { Tom: tom, Andy: andy, Art: art, qualificationAmt: qualificationA
 
 function SetupGame(){
     isFinalRound = false;
-    art.score = 0;
-    tom.score = 0;
-    andy.score = 0;
-    tom.round = 0;
-    andy.round = 0;
-    art.round = 0;
-    tom.hasQualified = false;
-    art.hasQualified = false;
-    andy.hasQualified = false;
+
     debugger;
-    document.getElementById("TomTextArea").innerHTML = "";
-    document.getElementById("ArtTextArea").innerHTML = "";
-    document.getElementById("AndyTextArea").innerHTML = "";
-    document.getElementById("Tom").innerHTML = "Tom";
-    document.getElementById("Art").innerHTML = "Art";
-    document.getElementById("Andy").innerHTML = "Andy";
+    initializeTurnOrder();
+    initializePlayers();
+    initializeUi();    
+    
+    beginRound();
+}
+
+function initializeTurnOrder() {
     //Randomly populate turnQueue to set player order
     var tempPlayer = [tom, andy, art];
     while (tempPlayer.length > 0){
@@ -67,7 +61,14 @@ function SetupGame(){
         turnOrder.push(tempPlayer[num]);
         tempPlayer.splice(num,1);
     }
-    beginRound();
+}
+
+function initializePlayers() {
+    for (var player of turnOrder) {
+        player.score = 0;
+        player.round = 0;
+        player.hasQualified = 0;
+    }
 }
 
 function beginRound(){
@@ -94,66 +95,46 @@ function turn(){
     var numRolling = numOfDice - currentPlayer.holding.length;
     if (numRolling == 0)
         numRolling = numOfDice;
+
     //Roll dice
     gameObj.diceRolled = rollDice(numRolling);
     //If no points are rolled, turn is over
     if (!checkForPoints(gameObj.diceRolled))
         endTurn(currentPlayer, 0);
     var currentPoints;
+    var response;
     switch(currentPlayer.name){
     case "Tom":
-        var response = TomTurn(gameObj);
-        currentPlayer.holding = response.diceHolding;
-        currentPoints = calculatePoints(currentPlayer.holding);
-        if (response.rollAgain && !disqualified)
-            turn();
-            
-        else
-            endTurn(currentPlayer, currentPoints);
+        response = TomTurn(gameObj);
         break;
     case "Art":
-        var response = ArtTurn(gameObj);
-        currentPlayer.holding = response.diceHolding;
-        currentPoints = calculatePoints(currentPlayer.holding);
-        if (response.rollAgain && !disqualified)
-            turn();
-        else
-            endTurn(currentPlayer, currentPoints);
+        response = ArtTurn(gameObj);
         break;
     case "Andy":
-        var response = AndyTurn(gameObj);
-        currentPlayer.holding = response.diceHolding;
-        currentPoints = calculatePoints(currentPlayer.holding);
-        if (response.rollAgain && !disqualified){
-            currentPlayer.currentTurnPoints += currentPoints;
-            turn();
-            }
-        else
-            endTurn(currentPlayer, currentPoints);
+        response = AndyTurn(gameObj);
         break;
+    }
+
+    currentPlayer.holding = response.diceHolding;
+    currentPoints = calculatePoints(currentPlayer.holding);
+    if (response.rollAgain && !disqualified) {
+        //currentPlayer.currentTurnPoints += currentPoints;
+        turn();
+    } else {
+        endTurn(currentPlayer, currentPoints);
     }
 }
 
 function endTurn(currentPlayer, pointsScored){
-    if (!currentPlayer.hasQualified && pointsScored > qualificationAmt - 1)
+    if (!currentPlayer.hasQualified && pointsScored >= qualificationAmt)
         currentPlayer.hasQualified = true;
     else if (currentPlayer.hasQualified){
         currentPlayer.score += pointsScored;
         if (currentPlayer.score > winningScoreTarget - 1)
             isFinalRound = true;
     }
-    var msg = "Round "+currentPlayer.round+": " + pointsScored + " ("+currentPlayer.score+" total)\n"
-    switch (currentPlayer.name){
-        case "Tom":
-        document.getElementById("TomTextArea").innerHTML += msg;
-        break;
-        case "Art":
-        document.getElementById("ArtTextArea").innerHTML += msg;
-        break;
-        case "Andy":
-        document.getElementById("AndyTextArea").innerHTML += msg;
-        break;
-    }
+    endTurnUpdateUi(currentPlayer, pointsScored);
+
     beginTurn();
 }
 
@@ -165,7 +146,7 @@ function gameOver(){
             winnerName = player.name;
     }
     
-    document.getElementById(winnerName).innerHTML += "-WINNER!";
+    gameOverUpdateUi(winnerName);
 }
 
 function rollDice(numToRoll){

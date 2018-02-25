@@ -1,5 +1,3 @@
-
-
 var tom = {
     name: "Tom",
     score: 0,
@@ -38,11 +36,25 @@ var tom = {
     var turnQueue = [];
     var diceHolding = [];
     var isFinalRound = false;
-    
-    
     var gameObj = { Tom: tom, Andy: andy, Art: art, qualificationAmt: qualificationAmt };
-    
     function SetupGame(){
+        isFinalRound = false;
+        art.score = 0;
+        tom.score = 0;
+        andy.score = 0;
+        tom.round = 0;
+        andy.round = 0;
+        art.round = 0;
+        tom.hasQualified = false;
+        art.hasQualified = false;
+        andy.hasQualified = false;
+        debugger;
+        document.getElementById("TomTextArea").innerHTML = "";
+        document.getElementById("ArtTextArea").innerHTML = "";
+        document.getElementById("AndyTextArea").innerHTML = "";
+        document.getElementById("Tom").innerHTML = "Tom";
+        document.getElementById("Art").innerHTML = "Art";
+        document.getElementById("Andy").innerHTML = "Andy";
         //Randomly populate turnQueue to set player order
         var tempPlayer = [tom, andy, art];
         while (tempPlayer.length > 0){
@@ -52,12 +64,10 @@ var tom = {
         }
         beginRound();
     }
-    
     function beginRound(){
         turnQueue = turnOrder.slice(0, turnOrder.length);
         beginTurn();
-    }//document.getElementById("heading").innerHTML = num;
-    
+    }
     function beginTurn(){
         if (turnQueue.length == 0){
             if (isFinalRound)
@@ -116,7 +126,6 @@ var tom = {
             break;
         }
     }
-    
     function endTurn(currentPlayer, pointsScored){
         if (!currentPlayer.hasQualified && pointsScored > qualificationAmt - 1)
             currentPlayer.hasQualified = true;
@@ -125,9 +134,20 @@ var tom = {
             if (currentPlayer.score > winningScoreTarget - 1)
                 isFinalRound = true;
         }
+        var msg = "Round "+currentPlayer.round+": " + pointsScored + " ("+currentPlayer.score+" total)\n"
+        switch (currentPlayer.name){
+            case "Tom":
+            document.getElementById("TomTextArea").innerHTML += msg;
+            break;
+            case "Art":
+            document.getElementById("ArtTextArea").innerHTML += msg;
+            break;
+            case "Andy":
+            document.getElementById("AndyTextArea").innerHTML += msg;
+            break;
+        }
         beginTurn();
     }
-    
     function gameOver(){
         var winningScore = 0;
         var winnerName;
@@ -136,9 +156,8 @@ var tom = {
                 winnerName = player.name;
         }
         
-        alert("Congrats " + winnerName);
+        document.getElementById(winnerName).innerHTML += "-WINNER!";
     }
-    
     function rollDice(numToRoll){
         var rolledDice = [];
         for (var d = 0; d < numToRoll; d++){
@@ -146,7 +165,6 @@ var tom = {
         }
         return rolledDice;
     }
-    
     function checkForPoints(diceRolled){
         var hasPoints = false;
         onesCount = 0;
@@ -185,7 +203,6 @@ var tom = {
             }			
         return hasPoints;
         }
-    
     function calculatePoints(diceHolding){	
         var total = 0;
         var dhOnesCount = 0;

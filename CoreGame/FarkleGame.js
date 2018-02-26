@@ -142,8 +142,10 @@ function gameOver(){
     var winningScore = 0;
     var winnerName;
     for (var player of turnOrder){
-        if (player.score > winningScore)
+        if (player.score > winningScore) {
+            winningScore = player.score;
             winnerName = player.name;
+        }
     }
     
     gameOverUpdateUi(winnerName);

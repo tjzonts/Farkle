@@ -14,7 +14,25 @@ named "diceHolding" and a boolean named "rollAgain" to indicate whether you want
 end your turn; sample:  return { diceHolding: [1,1,2,2,2], rollAgain: false}
 	*/
 	function TomTurn(gameObj){
-		var response = { diceHolding: [1], rollAgain: false};
-		return response;
+		var holding = [];
+	var diceCount = gameObj.diceRolled.length;
+	var rollAgain = true;
+	for(var die of gameObj.diceRolled) {
+		if (die === 1) {
+			holding.push(die);
+		}
+	}
+	var nextRollCount = diceCount - holding.length;
+	if (nextRollCount < 4 && nextRollCount > 0) {
+		rollAgain = false;
+		for(var die of gameObj.diceRolled) {
+			if (die === 5) {
+				holding.push(die);
+			}
+		}
+	}
+
+	var response = { diceHolding: holding, rollAgain: rollAgain};
+	return response;
 		}
 

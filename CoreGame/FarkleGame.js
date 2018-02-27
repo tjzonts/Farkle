@@ -41,11 +41,16 @@ var turnQueue = [];
 var diceHolding = [];
 var isFinalRound = false;
 var gameObj = { Tom: tom, Andy: andy, Art: art, qualificationAmt: qualificationAmt };
+var gameMode = "round";
+var gameRound = 0;
+
 
 function SetupGame(){
+    if (gameMode == "round" && gameRound > 1)
+        beginRound();
     isFinalRound = false;
 
-    debugger;
+  
     initializeTurnOrder();
     initializePlayers();
     initializeUi();    
@@ -72,6 +77,11 @@ function initializePlayers() {
 }
 
 function beginRound(){
+    gameRound++;
+    if (gameMode == "round"){
+        updateButton();
+        updateRound();
+    }
     turnQueue = turnOrder.slice(0, turnOrder.length);
     beginTurn();
 }
@@ -80,8 +90,12 @@ function beginTurn(){
     if (turnQueue.length == 0){
         if (isFinalRound)
             gameOver();
-        else
-            beginRound();
+        else{
+            if (gameMode != "round")
+                beginRound();           
+        }
+
+            
     }
     disqualified = false;
     currentPlayer = turnQueue.shift(); //Grab 1st player from queue
@@ -133,6 +147,8 @@ function endTurn(currentPlayer, pointsScored){
         if (currentPlayer.score > winningScoreTarget - 1)
             isFinalRound = true;
     }
+    if (gameMode == "round")
+        displayDice();
     endTurnUpdateUi(currentPlayer, pointsScored);
 
     beginTurn();
@@ -141,6 +157,12 @@ function endTurn(currentPlayer, pointsScored){
 function gameOver(){
     var winningScore = 0;
     var winnerName;
+    // _.forEach(turnOrder, (player)=> {
+    //     if (player.score > winningScore){
+    //         winningScore = player.score;
+    //         winnerName = player.name;
+    //     }
+    // });
     for (var player of turnOrder){
         if (player.score > winningScore) {
             winningScore = player.score;

@@ -25,3 +25,39 @@ function endTurnUpdateUi(currentPlayer, pointsScored) {
 function gameOverUpdateUi(winnerName) {
     document.getElementById(winnerName).innerHTML += "-WINNER!";
 }
+
+function setRoundGameMode(mode){
+    document.getElementById("gameModeDDL").innerHTML = mode;
+}
+
+function displayDice(){
+    var dice = "";
+    for (var die of gameObj.diceRolled){
+        dice += " [" + die + "] "
+    }
+    var heldDice = "";
+    for (var held of currentPlayer.holding){
+        heldDice += "[" + held + "] ";
+    }
+    dice += " - ( "+heldDice+")\r";
+    switch(currentPlayer.name){
+        case "Tom":
+        document.getElementById("TomTextArea").innerHTML += dice;
+        break;
+        case "Art":
+        document.getElementById("ArtTextArea").innerHTML += dice;
+        break;
+        case "Andy":
+        document.getElementById("AndyTextArea").innerHTML += dice;
+        break;
+        }
+    
+}
+
+function updateRound(){
+    document.getElementById("heading").innerHTML = "Farkle - Round " + gameRound;
+}
+
+function updateButton(){
+    document.getElementById("startGame").innerText = "Next Round";
+}

@@ -4,12 +4,15 @@
 <!-- Required meta tags -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="GameUi/lodash.js"></script>
 <script src="CoreGame/FarkleGame.js"></script>
 <script src="GameUi/TomUi.js"></script>
+
 <!--Create a folder called "AIs" in the same directory as this HTML file-->
 <script src="AIs/TomAI.js"></script>
 <script src="AIs/ArtAI.js"></script>
 <script src="AIs/AndyAI.js"></script>
+
 <!-- Bootstrap CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 </head>
@@ -19,7 +22,7 @@
 <h1 id="heading">Farkle</h1>
 </div>
 </div> <!-- End of row -->
-<div class="row" style="height: 500px">
+<div class="row" style="height: 500px; margin-bottom: 50px;">
 <div class="col-md-4" id="TomConsole" style="display:inline-block; float:none; text-align:center;"><h4 id="Tom">Tom</h4>
 <textarea id="TomTextArea" style="overflow-y: scroll; height: 100%; resize: none; width: 100%; margin-left: 5px;"></textarea>
 </div>
@@ -30,7 +33,21 @@
 	<textarea id="ArtTextArea" style="overflow-y: scroll; height: 100%; resize: none; width: 100%; margin-left: 5px; margin-right: 5px;"></textarea>
 </div>
 </div>
-<div>
+<div class="row">
+		<div class="dropdown">
+				<button id="gameModeDDL" onclick="myFunction()" class="btn btn-primary dropdown-toggle" type="button" style="margin-left: 25px" data-toggle="dropdown">Select Game Mode
+						<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" style="margin-left: 25px">
+						<li><a onclick="setRoundGameMode('Round')">Round</a></li>
+						<li><a onclick="setRoundGameMode('Game')">Game</a></li>
+						<li><a onclick="setRoundGameMode('Batch')">Batch</a></li>
+					  </ul>
+			  </div>
+</div>
+
+		
+	  <div>
 
 	<button id="startGame" class="fixed-bottom col-md-12"  style="display:inline-block; float:none; text-align:center;" onclick='SetupGame()'>Start Game</button>
 </div>

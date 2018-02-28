@@ -43,6 +43,8 @@ var isFinalRound = false;
 var gameObj = { Tom: tom, Andy: andy, Art: art, qualificationAmt: qualificationAmt };
 var gameMode = "round";
 var gameRound = 0;
+var turnPoints = 0;
+var rollNumber = 0;
 
 
 function SetupGame(){
@@ -50,11 +52,10 @@ function SetupGame(){
         beginRound();
     isFinalRound = false;
 
-  
+    initializeUi();
     initializeTurnOrder();
     initializePlayers();
-    initializeUi();    
-    
+           
     beginRound();
 }
 
@@ -63,6 +64,7 @@ function initializeTurnOrder() {
     var tempPlayer = [tom, andy, art];
     while (tempPlayer.length > 0){
         var num = Math.floor(Math.random() * tempPlayer.length);
+        setTurnOrderUI(tempPlayer[num], turnOrder.length + 1);
         turnOrder.push(tempPlayer[num]);
         tempPlayer.splice(num,1);
     }
@@ -72,7 +74,7 @@ function initializePlayers() {
     for (var player of turnOrder) {
         player.score = 0;
         player.round = 0;
-        player.hasQualified = 0;
+        player.hasQualified = 0;     
     }
 }
 
@@ -80,7 +82,7 @@ function beginRound(){
     gameRound++;
     if (gameMode == "round"){
         updateButton();
-        updateRound();
+        //updateRound();
     }
     turnQueue = turnOrder.slice(0, turnOrder.length);
     beginTurn();
@@ -102,10 +104,13 @@ function beginTurn(){
     currentPlayer.currentTurnPoints = 0;
     currentPlayer.holding = [];
     currentPlayer.round++;
+    rollNumber = 0;
+    turnPoints = 0;
     turn();
 }
         
 function turn(){
+    rollNumber++;
     var numRolling = numOfDice - currentPlayer.holding.length;
     if (numRolling == 0)
         numRolling = numOfDice;
@@ -115,7 +120,7 @@ function turn(){
     //If no points are rolled, turn is over
     if (!checkForPoints(gameObj.diceRolled))
         endTurn(currentPlayer, 0);
-    var currentPoints;
+    currentPoints;
     var response;
     switch(currentPlayer.name){
     case "Tom":
@@ -128,28 +133,30 @@ function turn(){
         response = AndyTurn(gameObj);
         break;
     }
-
+    var currentPoints = 0;
     currentPlayer.holding = response.diceHolding;
     currentPoints = calculatePoints(currentPlayer.holding);
+    turnPoints += currentPoints;
     if (response.rollAgain && !disqualified) {
-        //currentPlayer.currentTurnPoints += currentPoints;
+        displayDice();
+        recordRollUI(currentPlayer, currentPoints, turnPoints, rollNumber);
         turn();
     } else {
         endTurn(currentPlayer, currentPoints);
     }
 }
 
-function endTurn(currentPlayer, pointsScored){
-    if (!currentPlayer.hasQualified && pointsScored >= qualificationAmt)
+function endTurn(currentPlayer, turnPoints){
+    if (!currentPlayer.hasQualified && turnPoints >= qualificationAmt)
         currentPlayer.hasQualified = true;
     else if (currentPlayer.hasQualified){
-        currentPlayer.score += pointsScored;
+        currentPlayer.score += turnPoints;
         if (currentPlayer.score > winningScoreTarget - 1)
             isFinalRound = true;
     }
     if (gameMode == "round")
         displayDice();
-    endTurnUpdateUi(currentPlayer, pointsScored);
+    endTurnUpdateUi(currentPlayer, turnPoints);
 
     beginTurn();
 }
@@ -354,15 +361,16 @@ function calculatePoints(diceHolding){
     var isValidated = true;
     if (dhOnesCount > onesCount || dhFivesCount > fivesCount)
         isValidated = false;
-    if (dhTwosCount > 2 && (dhTwosCount != twosCount))
+    if (dhTwosCount > 2 && (dhTwosCount > twosCount))
         isValidated = false;
-    if (dhThreesCount > 2 && (dhThreesCount != threesCount))
+    if (dhThreesCount > 2 && (dhThreesCount > threesCount))
         isValidated = false;
-    if (dhFoursCount > 2 && (dhFoursCount != foursCount))
+    if (dhFoursCount > 2 && (dhFoursCount > foursCount))
         isValidated = false;
-    if (dhSixesCount > 2 && (dhSixesCount != sixesCount))
+    if (dhSixesCount > 2 && (dhSixesCount > sixesCount))
         isValidated = false;		
-    
+    if (diceHolding.length == 0 || total == 0)
+        disqualified = true;
     if (!isValidated){
         total = 0;
         disqualified = true;

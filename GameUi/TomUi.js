@@ -7,8 +7,23 @@ function initializeUi() {
     document.getElementById("Andy").innerHTML = "Andy";
 }
 
-function endTurnUpdateUi(currentPlayer, pointsScored) {
-    var msg = "Round " + currentPlayer.round + ": " + pointsScored + " (" + currentPlayer.score + " total)\n";
+function recordRollUI(currentPlayer, currentPoints, turnPoints, rollNumber){
+    var msg = "Roll " + rollNumber + ": " + currentPoints + "(total: "+ turnPoints +")\n";
+    switch (currentPlayer.name){
+        case "Tom":
+        document.getElementById("TomTextArea").innerHTML += msg;
+        break;
+        case "Art":
+        document.getElementById("ArtTextArea").innerHTML += msg;
+        break;
+        case "Andy":
+        document.getElementById("AndyTextArea").innerHTML += msg;
+        break;
+    }
+}
+
+function endTurnUpdateUi(currentPlayer, turnPoints) {
+    var msg = "Round " + currentPlayer.round + ": " + turnPoints + " (" + currentPlayer.score + " total)\n";
     switch (currentPlayer.name){
         case "Tom":
         document.getElementById("TomTextArea").innerHTML += msg;
@@ -59,5 +74,19 @@ function updateRound(){
 }
 
 function updateButton(){
-    document.getElementById("startGame").innerText = "Next Round";
+    document.getElementById("startGame").innerText = "Play Round " + gameRound++;
+}
+
+function setTurnOrderUI(tempPlayer, turnOrder){
+    switch(tempPlayer.name){
+        case "Tom":
+        document.getElementById("Tom").innerHTML = "Tom (" + turnOrder +")";
+        break;
+        case "Art":
+        document.getElementById("Art").innerText = "Art (" + turnOrder +")";
+        break;
+        case "Andy":
+        document.getElementById("Andy").innerHTML = "Andy (" + turnOrder +")";
+        break;
+    }   
 }

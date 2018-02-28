@@ -74,7 +74,7 @@ function updateRound(){
 }
 
 function updateButton(){
-    document.getElementById("startGame").innerText = "Play Round " + gameRound++;
+    document.getElementById("startGame").innerText = "Play Round " + (gameRound + 1);
 }
 
 function setTurnOrderUI(tempPlayer, turnOrder){

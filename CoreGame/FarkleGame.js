@@ -126,7 +126,11 @@ function roll(currentPlayer, numRolling) {
                 });
                 currentRoll.reroll = reroll;
 
-                roll(currentPlayer, numRolling - currentRoll.hold.length);
+                var nextRollCount = numRolling - currentRoll.hold.length;
+                if (nextRollCount === 0)
+                    nextRollCount = gameRules.numOfDice;
+
+                roll(currentPlayer, nextRollCount);
             } else {
                 endTurn(currentPlayer);
             }

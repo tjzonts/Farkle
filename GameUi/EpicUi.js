@@ -1,7 +1,7 @@
 function initializeUi(players) {
-    _.forEach(players, (player, index) => {
+    _.forEach(players, (player) => {
         clearScreen(player.name + "TextArea");
-        changeNameText(player.name, player.name + " (" + (index + 1) + ")");
+        changeNameText(player.name, player.name + " (" + player.turnOrder + ")");
     });
 }
 

@@ -93,8 +93,9 @@ function roll(currentPlayer, numRolling) {
     //If no points are rolled, turn is over
     if (!checkForPoints(currentRoll.roll)) {
         currentRoll.bust = true;
+        currentPlayer.recentTurn.turnPoints = 0;
         displayDice(currentPlayer, currentRoll);
-        endTurn(currentPlayer, 0);
+        endTurn(currentPlayer);
     } else {
         // Call AI's rollMethod:
         var response = currentPlayer.rollMethod({ diceRolled: currentRoll.roll, players: turnOrder, gameRules: gameRules, isFinalRound: isFinalRound });
@@ -125,7 +126,11 @@ function roll(currentPlayer, numRolling) {
                 });
                 currentRoll.reroll = reroll;
 
-                roll(currentPlayer, numRolling - currentRoll.hold.length);
+                var nextRollCount = numRolling - currentRoll.hold.length;
+                if (nextRollCount === 0)
+                    nextRollCount = gameRules.numOfDice;
+
+                roll(currentPlayer, nextRollCount);
             } else {
                 endTurn(currentPlayer);
             }
@@ -199,22 +204,23 @@ function calculatePoints(diceHolding) {
     var counts = getDieCounts(diceHolding);
     var total = 0;
     
-    //Validate returned dice to game dice
-    var isValidated = true;
     var disqualified = false;
     _.forEach(counts, (count, dieNum) => {
         if (currentRollCounts[dieNum] < count) {
-            isValidated = false;
+            // Tried to keep dice that don't exist.
+            disqualified = true;
         } else if (count >= 3) {
             total += scoringSystem.tripPoints[dieNum] * scoringSystem.setMultiplier[count];
         } else if ((dieNum === "1" || dieNum === "5") && (count === 1 || count === 2)) {
             total += scoringSystem[dieNum] * count;
+        } else if (count > 0) {
+            // Tried to keep non-scoring dice.
+            disqualified = true;
         }
     });
 
-    if (!isValidated) {
+    if (disqualified) {
         total = 0;
-        disqualified = true;
     }
     return { points: total, disqualified: disqualified };
 }

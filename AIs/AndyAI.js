@@ -36,6 +36,8 @@ end your turn; sample:  return { diceHolding: [1,1,2,2,2], rollAgain: false}
 */
 
 function AndyTurn(gameObj) {
+    //return { diceHolding: gameObj.diceRolled, rollAgain: true};
+
 	var holding = [];
 	var diceCount = gameObj.diceRolled.length;
 	var rollAgain = true;

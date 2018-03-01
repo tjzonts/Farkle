@@ -1,92 +1,46 @@
-function initializeUi() {
-    document.getElementById("TomTextArea").innerHTML = "";
-    document.getElementById("ArtTextArea").innerHTML = "";
-    document.getElementById("AndyTextArea").innerHTML = "";
-    document.getElementById("Tom").innerHTML = "Tom";
-    document.getElementById("Art").innerHTML = "Art";
-    document.getElementById("Andy").innerHTML = "Andy";
+function initializeUi(players) {
+    _.forEach(players, (player, index) => {
+        clearScreen(player.name + "TextArea");
+        changeNameText(player.name, player.name + " (" + (index + 1) + ")");
+    });
 }
 
-function recordRollUI(currentPlayer, currentPoints, turnPoints, rollNumber){
-    var msg = "Roll " + rollNumber + ": " + currentPoints + "(total: "+ turnPoints +")\n";
-    switch (currentPlayer.name){
-        case "Tom":
-        document.getElementById("TomTextArea").innerHTML += msg;
-        break;
-        case "Art":
-        document.getElementById("ArtTextArea").innerHTML += msg;
-        break;
-        case "Andy":
-        document.getElementById("AndyTextArea").innerHTML += msg;
-        break;
-    }
+function beginTurnUpdateUi(currentPlayer) {
+    var msg = "---------------------- Round " + currentPlayer.recentTurn.round + " ----------------------\n";
+    println(currentPlayer.name + "TextArea", msg);
 }
 
-function endTurnUpdateUi(currentPlayer, turnPoints) {
-    var msg = "Round " + currentPlayer.round + ": " + turnPoints + " (" + currentPlayer.score + " total)\n";
-    switch (currentPlayer.name){
-        case "Tom":
-        document.getElementById("TomTextArea").innerHTML += msg;
-        break;
-        case "Art":
-        document.getElementById("ArtTextArea").innerHTML += msg;
-        break;
-        case "Andy":
-        document.getElementById("AndyTextArea").innerHTML += msg;
-        break;
-    }
+function endTurnUpdateUi(currentPlayer) {
+    println(currentPlayer.name + "TextArea", "Points Gained this Round: " + currentPlayer.recentTurn.turnPoints);
+    println(currentPlayer.name + "TextArea", "Total Score: " + currentPlayer.score + "\n");
 }
 
 function gameOverUpdateUi(winnerName) {
-    document.getElementById(winnerName).innerHTML += "-WINNER!";
+    print(winnerName, " - WINNER!");
 }
 
-function setRoundGameMode(mode){
-    document.getElementById("gameModeDDL").innerHTML = mode;
+function displayDice(currentPlayer, currentRoll){
+    var dice = "Roll " + currentRoll.rollSequence + "\t[" + currentRoll.roll.toString() + "] ";
+    var heldDice = "Held\t\t[" + currentRoll.hold.toString() + "]";
+    var points = "+" + currentRoll.holdPoints + " pnts\tRound pnts: " + currentPlayer.recentTurn.turnPoints + "\n";
+
+    println(currentPlayer.name + "TextArea", dice);
+    println(currentPlayer.name + "TextArea", heldDice);
+    println(currentPlayer.name + "TextArea", points);
 }
 
-function displayDice(){
-    var dice = "";
-    for (var die of gameObj.diceRolled){
-        dice += " [" + die + "] "
-    }
-    var heldDice = "";
-    for (var held of currentPlayer.holding){
-        heldDice += "[" + held + "] ";
-    }
-    dice += " - ( "+heldDice+")\r";
-    switch(currentPlayer.name){
-        case "Tom":
-        document.getElementById("TomTextArea").innerHTML += dice;
-        break;
-        case "Art":
-        document.getElementById("ArtTextArea").innerHTML += dice;
-        break;
-        case "Andy":
-        document.getElementById("AndyTextArea").innerHTML += dice;
-        break;
-        }
-    
+function println(id, text = "") {
+    print(id, text + "\n");
 }
 
-function updateRound(){
-    document.getElementById("heading").innerHTML = "Farkle - Round " + gameRound;
+function print(id, text) {
+    document.getElementById(id).innerHTML += text;
 }
 
-function updateButton(){
-    document.getElementById("startGame").innerText = "Play Round " + (gameRound + 1);
+function changeNameText(name, text) {
+    document.getElementById(name).innerHTML = text;
 }
 
-function setTurnOrderUI(tempPlayer, turnOrder){
-    switch(tempPlayer.name){
-        case "Tom":
-        document.getElementById("Tom").innerHTML = "Tom (" + turnOrder +")";
-        break;
-        case "Art":
-        document.getElementById("Art").innerText = "Art (" + turnOrder +")";
-        break;
-        case "Andy":
-        document.getElementById("Andy").innerHTML = "Andy (" + turnOrder +")";
-        break;
-    }   
+function clearScreen(id) {
+    document.getElementById(id).innerHTML = "";
 }

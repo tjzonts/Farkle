@@ -1,32 +1,20 @@
-
-
-
-var disqualified = false;
-
-var turnQueue = [];
-var diceHolding = [];
-var isFinalRound = false;
-var gameObj = { Tom: tom, Andy: andy, Art: art, qualificationAmt: qualificationAmt };
-var gameMode = "round";
-var turnPoints = 0;
-
 // Andy approved vars:
-var qualificationAmt = 100; //Currently game will bomb if set much higher as our AIs aren't created yet.
+var qualificationAmt = 100;
 var winningScoreTarget = 10000; //Standard scoring amount
 var numOfDice = 6;
 
 var simulateGameCount = 1;
-var players;
 
 var gameRound = 0;
 var turnOrder = [];
+var isFinalRound = false;
 var scoringSystem;
 var currentRollCounts;
 
 function SetupGame() {
-    debugger;
+    //debugger;
     scoringSystem = setupScoreRules({ "setRule": "Multiply" });
-    players = [
+    var players = [
         {
             name: "Tom",
             rollMethod: TomTurn
@@ -40,7 +28,7 @@ function SetupGame() {
 
     initializeVariables();
     initializePlayers(players);
-    initializeUi();
+    initializeUi(turnOrder);
            
     beginRound();
 }
@@ -52,13 +40,13 @@ function initializeVariables() {
 }
 
 function initializePlayers(players) {
-    _.forEach(players, (player) => {
+    turnOrder = _.shuffle(players);
+
+    _.forEach(turnOrder, (player, index) => {
         player.score = 0;
         player.hasQualified = false;
         player.recentTurn = null;
     });
-
-    turnOrder = _.shuffle(players);
 }
 
 function beginRound(){
@@ -78,6 +66,7 @@ function beginTurn(currentPlayer){
         rolls: []
     };
 
+    beginTurnUpdateUi(currentPlayer);
     roll(currentPlayer, numOfDice);
 }
         
@@ -90,7 +79,7 @@ function roll(currentPlayer, numRolling) {
         disqualified: false,
         holdPoints: 0
     };
-    currentPlayer.recentTurn.push(currentRoll);
+    currentPlayer.recentTurn.rolls.push(currentRoll);
 
     //Roll dice
     currentRoll.roll = rollDice(numRolling);
@@ -99,20 +88,26 @@ function roll(currentPlayer, numRolling) {
         endTurn(currentPlayer, 0);
 
     // Call AI's rollMethod:
-    var response = currentPlayer.rollMethod(currentRoll.roll);
+    var response = currentPlayer.rollMethod( { diceRolled: currentRoll.roll });
     currentRoll.hold = response.diceHolding;
 
-    // Get points for held dice and if dice held are valid:
-    var checkPoints = calculatePoints(currentRoll.hold);
-    currentRoll.disqualified = checkPoints.disqualified;
+    currentRoll.disqualified = true;
+    // Get points for held dice and check if dice held are valid:
+    if (currentRoll.hold.length > 0) {
+        var checkPoints = calculatePoints(currentRoll.hold);
+        currentRoll.disqualified = checkPoints.disqualified;
+    }
 
     if (currentRoll.disqualified) {
         currentRoll.holdPoints = 0;
         currentPlayer.recentTurn.turnPoints = 0;
+        displayDice(currentPlayer, currentRoll);
         endTurn(currentPlayer);
     } else {
         currentRoll.holdPoints = checkPoints.points;
         currentPlayer.recentTurn.turnPoints += currentRoll.holdPoints;
+
+        displayDice(currentPlayer, currentRoll);
 
         if (response.rollAgain) {
             var reroll = _.slice(currentRoll.roll);
@@ -121,8 +116,6 @@ function roll(currentPlayer, numRolling) {
             });
             currentRoll.reroll = reroll;
 
-            displayDice();
-            recordRollUI(currentPlayer, currentPoints, turnPoints, rollNumber);
             roll(currentPlayer, numRolling - currentRoll.hold.length);
         } else {
             endTurn(currentPlayer);
@@ -131,16 +124,15 @@ function roll(currentPlayer, numRolling) {
 }
 
 function endTurn(currentPlayer){
-    if (!currentPlayer.hasQualified && turnPoints >= qualificationAmt) {
+    if (!currentPlayer.hasQualified && currentPlayer.recentTurn.turnPoints >= qualificationAmt) {
         currentPlayer.hasQualified = true;
     } else if (currentPlayer.hasQualified) {
-        currentPlayer.score += turnPoints;
+        currentPlayer.score += currentPlayer.recentTurn.turnPoints;
         if (currentPlayer.score >= winningScoreTarget)
             isFinalRound = true;
     }
 
-    displayDice();
-    endTurnUpdateUi(currentPlayer, turnPoints);
+    endTurnUpdateUi(currentPlayer);
 }
 
 function endRound() {
@@ -199,6 +191,7 @@ function calculatePoints(diceHolding) {
     
     //Validate returned dice to game dice
     var isValidated = true;
+    var disqualified = false;
     _.forEach(counts, (count, dieNum) => {
         if (currentRollCounts[dieNum] < count) {
             isValidated = false;

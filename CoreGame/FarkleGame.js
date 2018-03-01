@@ -14,10 +14,11 @@ function SetupGame() {
     gameRules = {
         qualificationAmt: 100,
         winningScoreTarget: 10000,
-        numOfDice: 6
+        numOfDice: 6,
+        setScoringRule: "Doubling"
     };
 
-    scoringSystem = setupScoreRules({ "setRule": "Multiply" });
+    scoringSystem = setupScoreRules({ "setRule": gameRules.setScoringRule });
     var players = [
         {
             name: "Tom",
@@ -96,7 +97,7 @@ function roll(currentPlayer, numRolling) {
         endTurn(currentPlayer, 0);
     } else {
         // Call AI's rollMethod:
-        var response = currentPlayer.rollMethod({ diceRolled: currentRoll.roll, players: turnOrder, gameRules: gameRules });
+        var response = currentPlayer.rollMethod({ diceRolled: currentRoll.roll, players: turnOrder, gameRules: gameRules, isFinalRound: isFinalRound });
         currentRoll.hold = response.diceHolding;
 
         currentRoll.disqualified = true;
@@ -224,7 +225,8 @@ function setupScoreRules(variantRules) {
     // Scoring rules:
     // Set point multiplier:
     const setRule = variantRules.setRule;
-    //const setRule = "Add";
+    //const setRule = "Adding";
+    //const setRule = "Doubling";
     //const setRule = "Set1000";
     //const setRule = "Set2000";
     // Default it Multiply:

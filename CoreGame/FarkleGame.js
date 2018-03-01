@@ -76,6 +76,7 @@ function roll(currentPlayer, numRolling) {
         roll: [],
         hold: [],
         reroll: [],
+        bust: false,
         disqualified: false,
         holdPoints: 0
     };
@@ -84,41 +85,44 @@ function roll(currentPlayer, numRolling) {
     //Roll dice
     currentRoll.roll = rollDice(numRolling);
     //If no points are rolled, turn is over
-    if (!checkForPoints(currentRoll.roll))
+    if (!checkForPoints(currentRoll.roll)) {
+        currentRoll.bust = true;
+        displayDice(currentPlayer, currentRoll);
         endTurn(currentPlayer, 0);
-
-    // Call AI's rollMethod:
-    var response = currentPlayer.rollMethod( { diceRolled: currentRoll.roll });
-    currentRoll.hold = response.diceHolding;
-
-    currentRoll.disqualified = true;
-    // Get points for held dice and check if dice held are valid:
-    if (currentRoll.hold.length > 0) {
-        var checkPoints = calculatePoints(currentRoll.hold);
-        currentRoll.disqualified = checkPoints.disqualified;
-    }
-
-    if (currentRoll.disqualified) {
-        currentRoll.holdPoints = 0;
-        currentPlayer.recentTurn.turnPoints = 0;
-        displayDice(currentPlayer, currentRoll);
-        endTurn(currentPlayer);
     } else {
-        currentRoll.holdPoints = checkPoints.points;
-        currentPlayer.recentTurn.turnPoints += currentRoll.holdPoints;
+        // Call AI's rollMethod:
+        var response = currentPlayer.rollMethod( { diceRolled: currentRoll.roll });
+        currentRoll.hold = response.diceHolding;
 
-        displayDice(currentPlayer, currentRoll);
+        currentRoll.disqualified = true;
+        // Get points for held dice and check if dice held are valid:
+        if (currentRoll.hold.length > 0) {
+            var checkPoints = calculatePoints(currentRoll.hold);
+            currentRoll.disqualified = checkPoints.disqualified;
+        }
 
-        if (response.rollAgain) {
-            var reroll = _.slice(currentRoll.roll);
-            _.forEach(currentRoll.hold, (die) => {
-                reroll = _.pullAt(reroll, _.indexOf(reroll, die));
-            });
-            currentRoll.reroll = reroll;
-
-            roll(currentPlayer, numRolling - currentRoll.hold.length);
-        } else {
+        if (currentRoll.disqualified) {
+            currentRoll.holdPoints = 0;
+            currentPlayer.recentTurn.turnPoints = 0;
+            displayDice(currentPlayer, currentRoll);
             endTurn(currentPlayer);
+        } else {
+            currentRoll.holdPoints = checkPoints.points;
+            currentPlayer.recentTurn.turnPoints += currentRoll.holdPoints;
+
+            displayDice(currentPlayer, currentRoll);
+
+            if (response.rollAgain) {
+                var reroll = _.slice(currentRoll.roll);
+                _.forEach(currentRoll.hold, (die) => {
+                    reroll = _.pullAt(reroll, _.indexOf(reroll, die));
+                });
+                currentRoll.reroll = reroll;
+
+                roll(currentPlayer, numRolling - currentRoll.hold.length);
+            } else {
+                endTurn(currentPlayer);
+            }
         }
     }
 }

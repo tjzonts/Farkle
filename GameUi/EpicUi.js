@@ -22,7 +22,15 @@ function gameOverUpdateUi(winnerName) {
 function displayDice(currentPlayer, currentRoll){
     var dice = "Roll " + currentRoll.rollSequence + "\t[" + currentRoll.roll.toString() + "] ";
     var heldDice = "Held\t\t[" + currentRoll.hold.toString() + "]";
-    var points = "+" + currentRoll.holdPoints + " pnts\tRound pnts: " + currentPlayer.recentTurn.turnPoints + "\n";
+    var rollPnts = "";
+    if (currentRoll.disqualified)
+        rollPnts = "CHEATER!";
+    else if (currentRoll.bust)
+        rollPnts = "BUST!\t";
+    else
+        rollPnts = "+" + currentRoll.holdPoints + " pnts";
+
+    var points = rollPnts + "\tRound pnts: " + currentPlayer.recentTurn.turnPoints + "\n";
 
     println(currentPlayer.name + "TextArea", dice);
     println(currentPlayer.name + "TextArea", heldDice);

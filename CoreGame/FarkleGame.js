@@ -1,181 +1,157 @@
-
-var tom = {
-    name: "Tom",
-    score: 0,
-    currentTurnPoints: 0,
-    hasQualified: false,
-    holding: [],
-    round: 0
-};
-
-var andy = {
-    name: "Andy",
-    score: 0,
-    currentTurnPoints: 0,
-    hasQualified: false,
-    holding: [],
-    round: 0
-};
-
-var art = {
-    name: "Art",
-    score: 0,
-    currentTurnPoints: 0,
-    hasQualified: false,
-    holding: [],
-    round: 0
-};
-
-var qualificationAmt = 100; //Currently game will bomb if set much higher as our AIs aren't created yet.
+// Andy approved vars:
+var qualificationAmt = 100;
 var winningScoreTarget = 10000; //Standard scoring amount
 var numOfDice = 6;
-var onesCount;
-var twosCount;
-var threesCount;
-var foursCount;
-var fivesCount;
-var sixesCount;
-var disqualified = false;
-var turnOrder = [];
-var turnQueue = [];
-var diceHolding = [];
-var isFinalRound = false;
-var gameObj = { Tom: tom, Andy: andy, Art: art, qualificationAmt: qualificationAmt };
-var gameMode = "round";
+
+var simulateGameCount = 1;
+
 var gameRound = 0;
-var turnPoints = 0;
-var rollNumber = 0;
+var turnOrder = [];
+var isFinalRound = false;
+var scoringSystem;
+var currentRollCounts;
 
+function SetupGame() {
+    //debugger;
+    scoringSystem = setupScoreRules({ "setRule": "Multiply" });
+    var players = [
+        {
+            name: "Tom",
+            rollMethod: TomTurn
+        }, {
+            name: "Andy",
+            rollMethod: AndyTurn
+        }, {
+            name: "Art",
+            rollMethod: ArtTurn
+        }];
 
-function SetupGame(){
-    if (gameMode == "round" && gameRound > 1)
-        beginRound();
-    isFinalRound = false;
-
-    initializeUi();
-    initializeTurnOrder();
-    initializePlayers();
+    initializeVariables();
+    initializePlayers(players);
+    initializeUi(turnOrder);
            
     beginRound();
 }
 
-function initializeTurnOrder() {
-    //Randomly populate turnQueue to set player order
-    var tempPlayer = [tom, andy, art];
-    while (tempPlayer.length > 0){
-        var num = Math.floor(Math.random() * tempPlayer.length);
-        setTurnOrderUI(tempPlayer[num], turnOrder.length + 1);
-        turnOrder.push(tempPlayer[num]);
-        tempPlayer.splice(num,1);
-    }
+function initializeVariables() {
+    gameRound = 0;
+    turnOrder = [];
+    isFinalRound = false;
 }
 
-function initializePlayers() {
-    for (var player of turnOrder) {
+function initializePlayers(players) {
+    turnOrder = _.shuffle(players);
+
+    _.forEach(turnOrder, (player, index) => {
         player.score = 0;
-        player.round = 0;
-        player.hasQualified = 0;     
-    }
+        player.hasQualified = false;
+        player.recentTurn = null;
+    });
 }
 
 function beginRound(){
     gameRound++;
-    if (gameMode == "round"){
-        updateButton();
-        //updateRound();
-    }
-    turnQueue = turnOrder.slice(0, turnOrder.length);
-    beginTurn();
+    
+    _.forEach(turnOrder, (player) => {
+        beginTurn(player);
+    });
+
+    endRound();
 }
 
-function beginTurn(){
-    if (turnQueue.length == 0){
-        if (isFinalRound)
-            gameOver();
-        else{
-            if (gameMode != "round")
-                beginRound();           
-        }
+function beginTurn(currentPlayer){
+    currentPlayer.recentTurn = {
+        round: gameRound,
+        turnPoints: 0,
+        rolls: []
+    };
 
-            
-    }
-    disqualified = false;
-    currentPlayer = turnQueue.shift(); //Grab 1st player from queue
-    currentPlayer.currentTurnPoints = 0;
-    currentPlayer.holding = [];
-    currentPlayer.round++;
-    rollNumber = 0;
-    turnPoints = 0;
-    turn();
+    beginTurnUpdateUi(currentPlayer);
+    roll(currentPlayer, numOfDice);
 }
         
-function turn(){
-    rollNumber++;
-    var numRolling = numOfDice - currentPlayer.holding.length;
-    if (numRolling == 0)
-        numRolling = numOfDice;
+function roll(currentPlayer, numRolling) {
+    var currentRoll = {
+        rollSequence: currentPlayer.recentTurn.rolls.length + 1,
+        roll: [],
+        hold: [],
+        reroll: [],
+        disqualified: false,
+        holdPoints: 0
+    };
+    currentPlayer.recentTurn.rolls.push(currentRoll);
 
     //Roll dice
-    gameObj.diceRolled = rollDice(numRolling);
+    currentRoll.roll = rollDice(numRolling);
     //If no points are rolled, turn is over
-    if (!checkForPoints(gameObj.diceRolled))
+    if (!checkForPoints(currentRoll.roll))
         endTurn(currentPlayer, 0);
-    currentPoints;
-    var response;
-    switch(currentPlayer.name){
-    case "Tom":
-        response = TomTurn(gameObj);
-        break;
-    case "Art":
-        response = ArtTurn(gameObj);
-        break;
-    case "Andy":
-        response = AndyTurn(gameObj);
-        break;
+
+    // Call AI's rollMethod:
+    var response = currentPlayer.rollMethod( { diceRolled: currentRoll.roll });
+    currentRoll.hold = response.diceHolding;
+
+    currentRoll.disqualified = true;
+    // Get points for held dice and check if dice held are valid:
+    if (currentRoll.hold.length > 0) {
+        var checkPoints = calculatePoints(currentRoll.hold);
+        currentRoll.disqualified = checkPoints.disqualified;
     }
-    var currentPoints = 0;
-    currentPlayer.holding = response.diceHolding;
-    currentPoints = calculatePoints(currentPlayer.holding);
-    turnPoints += currentPoints;
-    if (response.rollAgain && !disqualified) {
-        displayDice();
-        recordRollUI(currentPlayer, currentPoints, turnPoints, rollNumber);
-        turn();
+
+    if (currentRoll.disqualified) {
+        currentRoll.holdPoints = 0;
+        currentPlayer.recentTurn.turnPoints = 0;
+        displayDice(currentPlayer, currentRoll);
+        endTurn(currentPlayer);
     } else {
-        endTurn(currentPlayer, currentPoints);
+        currentRoll.holdPoints = checkPoints.points;
+        currentPlayer.recentTurn.turnPoints += currentRoll.holdPoints;
+
+        displayDice(currentPlayer, currentRoll);
+
+        if (response.rollAgain) {
+            var reroll = _.slice(currentRoll.roll);
+            _.forEach(currentRoll.hold, (die) => {
+                reroll = _.pullAt(reroll, _.indexOf(reroll, die));
+            });
+            currentRoll.reroll = reroll;
+
+            roll(currentPlayer, numRolling - currentRoll.hold.length);
+        } else {
+            endTurn(currentPlayer);
+        }
     }
 }
 
-function endTurn(currentPlayer, turnPoints){
-    if (!currentPlayer.hasQualified && turnPoints >= qualificationAmt)
+function endTurn(currentPlayer){
+    if (!currentPlayer.hasQualified && currentPlayer.recentTurn.turnPoints >= qualificationAmt) {
         currentPlayer.hasQualified = true;
-    else if (currentPlayer.hasQualified){
-        currentPlayer.score += turnPoints;
-        if (currentPlayer.score > winningScoreTarget - 1)
+    } else if (currentPlayer.hasQualified) {
+        currentPlayer.score += currentPlayer.recentTurn.turnPoints;
+        if (currentPlayer.score >= winningScoreTarget)
             isFinalRound = true;
     }
-    if (gameMode == "round")
-        displayDice();
-    endTurnUpdateUi(currentPlayer, turnPoints);
 
-    beginTurn();
+    endTurnUpdateUi(currentPlayer);
+}
+
+function endRound() {
+    if (isFinalRound) {
+        gameOver();
+    } else {
+        beginRound();
+    }
 }
 
 function gameOver(){
     var winningScore = 0;
-    var winnerName;
-    // _.forEach(turnOrder, (player)=> {
-    //     if (player.score > winningScore){
-    //         winningScore = player.score;
-    //         winnerName = player.name;
-    //     }
-    // });
-    for (var player of turnOrder){
-        if (player.score > winningScore) {
-            winningScore = player.score;
-            winnerName = player.name;
-        }
-    }
+    var winnerName = "";
+     _.forEach(turnOrder, (player)=> {
+         if (player.score > winningScore){
+             winningScore = player.score;
+             winnerName = player.name;
+         }
+     });
     
     gameOverUpdateUi(winnerName);
 }
@@ -190,190 +166,89 @@ function rollDice(numToRoll){
 
 function checkForPoints(diceRolled){
     var hasPoints = false;
-    onesCount = 0;
-    twosCount = 0;
-    threesCount = 0;
-    foursCount = 0;
-    fivesCount = 0;
-    sixesCount = 0;
+    currentRollCounts = getDieCounts(diceRolled);
     
-    for(var die of diceRolled){
-        switch(die){
-        case 1:
-            onesCount++;
-            hasPoints = true;
-            break;
-        case 2:
-            twosCount++;
-            break;
-        case 3:
-            threesCount++;
-            break;
-        case 4:
-            foursCount++;
-            break;
-        case 5:
-            fivesCount++;
-            hasPoints = true;
-            break;
-        case 6:
-            sixesCount++;
-            break;			
+    _.forEach(currentRollCounts, (count, dieNum) => {
+        switch (dieNum) {
+            case '1':
+            case '5':
+                if (count > 0)
+                    hasPoints = true;
+                break;
+            default:
+                if (count >= 3)
+                    hasPoints = true;
+                break;
         }
-    }	
-    if (twosCount > 2 || threesCount > 2 || foursCount > 2 || sixesCount > 2){
-            hasPoints = true;
-        }			
+    });
+
     return hasPoints;
 }
 
-function calculatePoints(diceHolding){	
+function calculatePoints(diceHolding) {
+    var counts = getDieCounts(diceHolding);
     var total = 0;
-    var dhOnesCount = 0;
-    var dhTwosCount = 0;
-    var dhThreesCount = 0;
-    var dhFoursCount = 0;
-    var dhFivesCount = 0;
-    var dhSixesCount = 0;
-    for(var die of diceHolding){
-        switch(die){
-        case 1:
-            dhOnesCount++;
-            break;
-        case 2:
-            dhTwosCount++;
-            break;
-        case 3:
-            dhThreesCount++;
-            break;
-        case 4:
-            dhFoursCount++;
-            break;
-        case 5:
-            dhFivesCount++;
-            break;
-        case 6:
-            dhSixesCount++;
-            break;			
-        }
-    }
-    if (dhOnesCount < 3)
-        total += dhOnesCount * 100;
-    else {
-        switch(dhOnesCount){
-        case 3:
-            total += 1000;
-            break;
-        case 4:
-            total += 2000;
-            break;
-        case 5:
-            total += 4000;
-            break;
-        case 6:
-            total += 8000;
-            break;
-        }
-    }
-    if (dhTwosCount > 2){
-        switch(dhTwosCount){
-        case 3:
-            total += 200;
-            break;
-        case 4:
-            total += 400;
-            break;
-        case 5:
-            total += 800;
-            break;
-        case 6:
-            total += 1600;
-            break;
-        }
-    }
-    if (dhThreesCount > 2){
-        switch(dhThreesCount){
-        case 3:
-            total += 300;
-            break;
-        case 4:
-            total += 600;
-            break;
-        case 5:
-            total += 1200;
-            break;
-        case 6:
-            total += 2400;
-            break;
-        }
-    }
-    if (dhFoursCount > 2){
-        switch(dhFoursCount){
-        case 3:
-            total += 400;
-            break;
-        case 4:
-            total += 800;
-            break;
-        case 5:
-            total += 1600;
-            break;
-        case 6:
-            total += 3200;
-            break;
-        }
-    }
-    if (dhFivesCount < 3)
-        total += dhFivesCount * 50;
-    else {
-        switch(dhFivesCount){
-        case 3:
-            total += 500;
-            break;
-        case 4:
-            total += 1000;
-            break;
-        case 5:
-            total += 2000;
-            break;
-        case 6:
-            total += 4000;
-            break;
-        }
-    }
-    if (dhSixesCount > 2){
-        switch(dhSixesCount){
-        case 3:
-            total += 600;
-            break;
-        case 4:
-            total += 1200;
-            break;
-        case 5:
-            total += 2400;
-            break;
-        case 6:
-            total += 3200;
-            break;
-        }
-    }
+    
     //Validate returned dice to game dice
     var isValidated = true;
-    if (dhOnesCount > onesCount || dhFivesCount > fivesCount)
-        isValidated = false;
-    if (dhTwosCount > 2 && (dhTwosCount > twosCount))
-        isValidated = false;
-    if (dhThreesCount > 2 && (dhThreesCount > threesCount))
-        isValidated = false;
-    if (dhFoursCount > 2 && (dhFoursCount > foursCount))
-        isValidated = false;
-    if (dhSixesCount > 2 && (dhSixesCount > sixesCount))
-        isValidated = false;		
-    if (diceHolding.length == 0 || total == 0)
-        disqualified = true;
-    if (!isValidated){
+    var disqualified = false;
+    _.forEach(counts, (count, dieNum) => {
+        if (currentRollCounts[dieNum] < count) {
+            isValidated = false;
+        } else if (count >= 3) {
+            total += scoringSystem.tripPoints[dieNum] * scoringSystem.setMultiplier[count];
+        } else if ((dieNum === "1" || dieNum === "5") && (count === 1 || count === 2)) {
+            total += scoringSystem[dieNum] * count;
+        }
+    });
+
+    if (!isValidated) {
         total = 0;
         disqualified = true;
     }
-    return total;
+    return { points: total, disqualified: disqualified };
+}
+
+/* -----------------------------Scoring Logic Below----------------------------- */
+
+function setupScoreRules(variantRules) {
+    // Scoring rules:
+    // Set point multiplier:
+    const setRule = variantRules.setRule;
+    //const setRule = "Add";
+    //const setRule = "Set1000";
+    //const setRule = "Set2000";
+    // Default it Multiply:
+    let setMultiplier = [0, 0, 0, 1, 2, 4, 8]; // Index corrisponds to count of set.
+    if (setRule === "Multiply") {
+        setMultiplier = [0, 0, 0, 1, 2, 4, 8];
+    } else if (setRule === "Add") {
+        setMultiplier = [0, 0, 0, 1, 2, 3, 4];
+    }
+
+    return {
+        tripPoints: {
+            "1": 1000,
+            "2": 200,
+            "3": 300,
+            "4": 400,
+            "5": 500,
+            "6": 600
+        },
+        setMultiplier: setMultiplier,
+        "1": 100,
+        "5": 50
+    };
+}
+
+function getDieCounts(roll) {
+    var counts = _.countBy(roll);
+    counts["1"] = counts["1"] || 0;
+    counts["2"] = counts["2"] || 0;
+    counts["3"] = counts["3"] || 0;
+    counts["4"] = counts["4"] || 0;
+    counts["5"] = counts["5"] || 0;
+    counts["6"] = counts["6"] || 0;
+
+    return counts;
 }

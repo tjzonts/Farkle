@@ -1,7 +1,5 @@
 // Andy approved vars:
-var qualificationAmt = 100;
-var winningScoreTarget = 10000; //Standard scoring amount
-var numOfDice = 6;
+var gameRules;
 
 var simulateGameCount = 1;
 
@@ -13,6 +11,12 @@ var currentRollCounts;
 
 function SetupGame() {
     //debugger;
+    gameRules = {
+        qualificationAmt: 100,
+        winningScoreTarget: 10000,
+        numOfDice: 6
+    };
+
     scoringSystem = setupScoreRules({ "setRule": "Multiply" });
     var players = [
         {
@@ -46,6 +50,7 @@ function initializePlayers(players) {
         player.score = 0;
         player.hasQualified = false;
         player.recentTurn = null;
+        player.turnOrder = (index + 1);
     });
 }
 
@@ -67,7 +72,7 @@ function beginTurn(currentPlayer){
     };
 
     beginTurnUpdateUi(currentPlayer);
-    roll(currentPlayer, numOfDice);
+    roll(currentPlayer, gameRules.numOfDice);
 }
         
 function roll(currentPlayer, numRolling) {
@@ -91,7 +96,7 @@ function roll(currentPlayer, numRolling) {
         endTurn(currentPlayer, 0);
     } else {
         // Call AI's rollMethod:
-        var response = currentPlayer.rollMethod( { diceRolled: currentRoll.roll });
+        var response = currentPlayer.rollMethod({ diceRolled: currentRoll.roll, players: turnOrder, gameRules: gameRules });
         currentRoll.hold = response.diceHolding;
 
         currentRoll.disqualified = true;
@@ -115,7 +120,7 @@ function roll(currentPlayer, numRolling) {
             if (response.rollAgain) {
                 var reroll = _.slice(currentRoll.roll);
                 _.forEach(currentRoll.hold, (die) => {
-                    reroll = _.pullAt(reroll, _.indexOf(reroll, die));
+                    _.pullAt(reroll, _.indexOf(reroll, die));
                 });
                 currentRoll.reroll = reroll;
 
@@ -128,11 +133,11 @@ function roll(currentPlayer, numRolling) {
 }
 
 function endTurn(currentPlayer){
-    if (!currentPlayer.hasQualified && currentPlayer.recentTurn.turnPoints >= qualificationAmt) {
+    if (!currentPlayer.hasQualified && currentPlayer.recentTurn.turnPoints >= gameRules.qualificationAmt) {
         currentPlayer.hasQualified = true;
     } else if (currentPlayer.hasQualified) {
         currentPlayer.score += currentPlayer.recentTurn.turnPoints;
-        if (currentPlayer.score >= winningScoreTarget)
+        if (currentPlayer.score >= gameRules.winningScoreTarget)
             isFinalRound = true;
     }
 
@@ -163,7 +168,7 @@ function gameOver(){
 function rollDice(numToRoll){
     var rolledDice = [];
     for (var d = 0; d < numToRoll; d++){
-        rolledDice.push(Math.floor(Math.random() * 6) + 1);
+        rolledDice.push(_.random(1, 6));
     }
     return rolledDice;
 }

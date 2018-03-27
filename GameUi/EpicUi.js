@@ -1,7 +1,7 @@
 function initializeUi(players) {
     _.forEach(players, (player) => {
         clearScreen(player.name + "TextArea");
-        changeNameText(player.name, player.name + " (" + player.turnOrder + ")");
+        changeNameText(player.name, player.name + " (" + player.turnOrder + ")" + "\nTotal Wins: " + player.wins);
     });
 }
 
@@ -19,8 +19,8 @@ function endTurnUpdateUi(currentPlayer) {
     println(currentPlayer.name + "TextArea", "Total Score: " + currentPlayer.score + "\n");
 }
 
-function gameOverUpdateUi(winnerName) {
-    print(winnerName, " - WINNER!");
+function gameOverUpdateUi(winner) {
+	print(winner.name, " - WINNER!" + "\nTotal Wins: " + winner.wins);
 }
 
 function displayDice(currentPlayer, currentRoll) {

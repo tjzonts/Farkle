@@ -8,9 +8,20 @@ var turnOrder = [];
 var isFinalRound = false;
 var scoringSystem;
 var currentRollCounts;
+var resultsOnly = false;
+
+function createPlayer(playerName, rollMethod) {
+	return {
+		name: playerName,
+		rollMethod: rollMethod,
+		wins:0
+	};
+}
 
 function SetupGame() {
-    //debugger;
+
+	simulateGameCount = $("#numOfRuns").val();
+
     gameRules = {
         qualificationAmt: 100,
         winningScoreTarget: 10000,
@@ -20,22 +31,25 @@ function SetupGame() {
 
     scoringSystem = setupScoreRules({ "setRule": gameRules.setScoringRule });
     var players = [
-        {
-            name: "Tom",
-            rollMethod: TomTurn
-        }, {
-            name: "Andy",
-            rollMethod: AndyTurn
-        }, {
-            name: "Art",
-            rollMethod: ArtTurn
-        }];
+            createPlayer("Tom", TomTurn), 
+			createPlayer("Andy", AndyTurn), 
+			createPlayer("Art", ArtTurn)
+	];
 
-    initializeVariables();
-    initializePlayers(players);
-    initializeUi(turnOrder);
-           
-    beginRound();
+	if (simulateGameCount > 10)
+		resultsOnly = true;
+
+	for (gameCount = 0; gameCount < simulateGameCount; gameCount++) {
+		startGame(players);
+	}
+}
+
+function startGame(players) {
+	initializeVariables();
+	initializePlayers(players);
+	initializeUi(turnOrder);
+
+	beginRound();
 }
 
 function initializeVariables() {
@@ -58,8 +72,12 @@ function initializePlayers(players) {
 function beginRound(){
     gameRound++;
     
-    _.forEach(turnOrder, (player) => {
-        beginTurn(player);
+	_.forEach(turnOrder, (player) => {
+		if (!isFinalRound) {
+			beginTurn(player);
+			if (player.score >= gameRules.winningScoreTarget)
+				isFinalRound = true;
+		}
     });
 
     endRound();
@@ -72,7 +90,8 @@ function beginTurn(currentPlayer){
         rolls: []
     };
 
-    beginTurnUpdateUi(currentPlayer);
+	if (!resultsOnly)
+		beginTurnUpdateUi(currentPlayer);
     roll(currentPlayer, gameRules.numOfDice);
 }
         
@@ -93,8 +112,10 @@ function roll(currentPlayer, numRolling) {
     //If no points are rolled, turn is over
     if (!checkForPoints(currentRoll.roll)) {
         currentRoll.bust = true;
-        currentPlayer.recentTurn.turnPoints = 0;
-        displayDice(currentPlayer, currentRoll);
+		currentPlayer.recentTurn.turnPoints = 0;
+		if (!resultsOnly)
+			displayDice(currentPlayer, currentRoll);
+
         endTurn(currentPlayer);
     } else {
         // Call AI's rollMethod:
@@ -110,14 +131,15 @@ function roll(currentPlayer, numRolling) {
 
         if (currentRoll.disqualified) {
             currentRoll.holdPoints = 0;
-            currentPlayer.recentTurn.turnPoints = 0;
-            displayDice(currentPlayer, currentRoll);
+			currentPlayer.recentTurn.turnPoints = 0;
+			if (!resultsOnly)
+				displayDice(currentPlayer, currentRoll);
             endTurn(currentPlayer);
         } else {
             currentRoll.holdPoints = checkPoints.points;
             currentPlayer.recentTurn.turnPoints += currentRoll.holdPoints;
-
-            displayDice(currentPlayer, currentRoll);
+			if (!resultsOnly)
+				displayDice(currentPlayer, currentRoll);
 
             if (response.rollAgain) {
                 var reroll = _.slice(currentRoll.roll);
@@ -146,8 +168,8 @@ function endTurn(currentPlayer){
         if (currentPlayer.score >= gameRules.winningScoreTarget)
             isFinalRound = true;
     }
-
-    endTurnUpdateUi(currentPlayer);
+	if (!resultsOnly)
+		endTurnUpdateUi(currentPlayer);
 }
 
 function endRound() {
@@ -161,14 +183,19 @@ function endRound() {
 function gameOver(){
     var winningScore = 0;
     var winnerName = "";
-     _.forEach(turnOrder, (player)=> {
-         if (player.score > winningScore){
-             winningScore = player.score;
-             winnerName = player.name;
-         }
+	_.forEach(turnOrder, (player) => {
+		if (player.score >= gameRules.winningScoreTarget) {
+			 winningScore = player.score;
+			 winnerName = player.name;
+			 player.wins++;
+			 changeNameText(player.name, player.name + " (" + player.turnOrder + ")" + "\nTotal Wins: " + player.wins);
+		 }
+		 else {
+			 changeNameText(player.name, player.name + " (" + player.turnOrder + ")" + "\nTotal Wins: " + player.wins);
+		 }
      });
     
-    gameOverUpdateUi(winnerName);
+    
 }
 
 function rollDice(numToRoll){

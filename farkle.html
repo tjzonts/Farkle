@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 	<!-- Required meta tags -->
@@ -14,35 +14,48 @@
 	<script src="AIs/AndyAI.js"></script>
 
 	<!-- Bootstrap CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
 	<div class="row" style="text-align:center;">
-		<div class="col-md-12"  style="display:inline-block; float:none; text-align:center;">
+		<div class="col-md-12" style="display:inline-block; float:none; text-align:center;">
 			<h1 id="heading">Farkle</h1>
 		</div>
 	</div>
 	<div class="row" style="height: 500px; margin-bottom: 50px;">
 		<div class="col-md-4" id="TomConsole" style="display:inline-block; float:none; text-align:center;">
-			<h4 id="Tom">Tom</h4>
-			<textarea id="TomTextArea" style="overflow-y: scroll; height: 100%; resize: none; width: 100%; margin-left: 5px;"></textarea>
+			<div class="form-group">
+				<label for="TomTextArea" id="Tom" class="font-weight-bold">Tom</label>
+				<textarea id="TomTextArea" class="form-control" style="overflow-y: scroll;" rows="20"></textarea>
+			</div>
 		</div>
 		<div class="col-md-4" id="AndyConsole" style="display:inline-block; float:none; text-align:center;">
-			<h4 id="Andy">Andy</h4>
-			<textarea id="AndyTextArea" style="overflow-y: scroll; height: 100%; resize: none; width: 100%; margin-left: 5px;"></textarea>
+			<div class="form-group">
+				<label for="AndyTextArea" id="Andy" class="font-weight-bold">Andy</label>
+				<textarea id="AndyTextArea" class="form-control" style="overflow-y: scroll;" rows="20"></textarea>
+			</div>
 		</div>
 		<div class="col-md-4" id="ArtConsole" style="display:inline-block; float:none; text-align:center;">
-			<h4 id="Art">Art</h4>
-			<textarea id="ArtTextArea" style="overflow-y: scroll; height: 100%; resize: none; width: 100%; margin-left: 5px; margin-right: 5px;"></textarea>
+			<div class="form-group">
+				<label for="ArtTextArea" id="Art" class="font-weight-bold">Art</label>
+				<textarea id="ArtTextArea" class="form-control" style="overflow-y: scroll;" rows="20"></textarea>
+			</div>
 		</div>
-	</div>	
+	</div>
+	<div class="input-group">
+		<div class="input-group-prepend">
+			<span class="input-group-text" id="basic-addon3"># of Times to Run: </span>
+		</div>
+		<input type="number" class="form-control" id="numOfRuns" aria-describedby="basic-addon3">
+	</div>
+
 	<div>
-		<button id="startGame" class="fixed-bottom col-md-12"  style="display:inline-block; float:none; text-align:center;" onclick='SetupGame()'>Start Game</button>
+		<button id="startGame" class="col-md-12 btn btn-primary btn-lg" style="display:inline-block; float:none; text-align:center;" onclick='SetupGame()'>Start Game</button>
 	</div>
 
 	<!-- jQuery first, then Tether, then Bootstrap JS. -->
 	<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
 </html>
